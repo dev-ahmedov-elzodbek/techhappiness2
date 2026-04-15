@@ -203,7 +203,10 @@ function ChatApp() {
   // Init socket
   useEffect(() => {
     if (!user) return;
-    API.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
+    const token = localStorage.getItem("token");
+    if (token) {
+      API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
 
     socketRef.current = io(SERVER, { transports: ["websocket", "polling"] });
     socketRef.current.emit("user:login", user.id);
@@ -897,6 +900,15 @@ function Modal({ children, onClose }) {
 export default function App() {
   const [ready, setReady] = useState(false);
   const { token } = useAuthStore();
+
+  // Set auth header on app load
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      API.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
+    }
+  }, []);
+
   if (!ready) return <Splash onReady={() => setReady(true)} />;
   if (!token) return <LoginRegister />;
   return <ChatApp />;
